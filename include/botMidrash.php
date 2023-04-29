@@ -6,9 +6,7 @@ class botMidrash{
 	private $rawUpdate = array();
 	private $update = NULL;
 
-	private $yeshivaSettings = array();
-	private $yeshivaId = -1;
-	private $yeshivaName = "הכסא המעופף";
+	private yeshivaDetails $yeshivaDetails;
 
 	public function __construct() {
 		db::connect(DATABASE_CONFIG["username"], DATABASE_CONFIG["password"], DATABASE_CONFIG["dbname"], DATABASE_CONFIG["host"]);
@@ -19,14 +17,14 @@ class botMidrash{
 	}
 
 	private function loadSettings() {
-		$this->yeshivaId = (new db())->where("phone_number", $this->update->from->phoneNumber)->selectFirst('users', 'yeshiva_id', [])['yeshiva_id'] ?? -1;
+		$this->yeshivaDetails->yeshivaId = (new db())->where("phone_number", $this->update->from->phoneNumber)->selectFirst('users', 'yeshiva_id', [])['yeshiva_id'] ?? -1;
 
-		$yeshiva = (new db())->where('id', $this->yeshivaId)->selectFirst('yeshivot');
+		$yeshiva = (new db())->where('id', $this->yeshivaDetails->yeshivaId)->selectFirst('yeshivot');
 		if (empty($yeshiva) || $yeshiva['disable']) {
 			// TODO: settings for unrgister yeshiva.
 		}
 		else {
-			$this->yeshivaName = $yeshiva['name'];
+			$this->yeshivaDetails->yeshivaName = $yeshiva['name'];
 
 			$jsonSettings = array(
 				'blockedNumbers', 
@@ -35,14 +33,14 @@ class botMidrash{
 				'shabatRemindeDates', 
 				'speicalRegisterData'
 			);
-			$settings = (new db())->where('yeshiva_id', $this->yeshivaId)->select('settings');
+			$settings = (new db())->where('yeshiva_id', $this->yeshivaDetails->yeshivaId)->select('settings');
 
 			foreach ($settings as $row) {
 				if (in_array($row['name'], $jsonSettings)) {
-					$this->yeshivaSettings[$row['name']] = json_decode($row['value'], true);
+					$this->yeshivaDetails->yeshivaSettings[$row['name']] = json_decode($row['value'], true);
 				}
 				else {
-					$this->yeshivaSettings[$row['name']] = $row['value'];
+					$this->yeshivaDetails->yeshivaSettings[$row['name']] = $row['value'];
 				}
 			}
 		}
@@ -60,7 +58,7 @@ class botMidrash{
 
 		$this->loadSettings();
 
-		if (in_array($this->update->from->phoneNumber, $this->yeshivaSettings['blockedNumbers'] ?? [])) {
+		if (in_array($this->update->from->phoneNumber, $this->yeshivaDetails->yeshivaSettings['blockedNumbers'] ?? [])) {
 			return;
 		}
 	}
@@ -68,7 +66,6 @@ class botMidrash{
 	public function run() {
 		if ($this->update instanceof waUpdateStatus) {
 			if (logger::messageExistByFacebookId($this->update->messageId)) {
-				var_dump($this->update->status);
 				logger::updateMessageStatus($this->update->messageId, $this->update->status);
 			}
 			else {
@@ -99,15 +96,20 @@ class botMidrash{
 					$command = (new $className());
 					if ($this->update->type == $command::command_message_type) {
 						if (helpers::checkIfRunThisCommand($command::command, $command::command_type, $this->update)) {
-							$command->run($this->update);
-							$foundCommand = true;
-							break;
+							if ($command::need_auth && ($this->yeshivaDetails->yeshivaId != -1)) {
+								$command->run($this->update, $this->yeshivaDetails);
+								$foundCommand = true;
+								break;
+							}
+							else {
+								(new notAuthUser())->run($this->update, $this->yeshivaDetails);
+							}
 						}
 					}
 				}
 
 				if (!$foundCommand) {
-					(new defualtCommand())->run($this->update);
+					(new defualtCommand())->run($this->update, $this->yeshivaDetails);
 				}
 			}
 		}

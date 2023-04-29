@@ -8,5 +8,5 @@ abstract class command {
 	const command_type = 0;
 	const need_auth = true;
 
-	abstract public static function run(waUpdateMessage $update);
+	abstract public static function run(waUpdateMessage $update, yeshivaDetails $yeshivaDetails);
 }
