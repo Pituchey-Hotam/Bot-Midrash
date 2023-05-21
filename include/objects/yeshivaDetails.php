@@ -3,7 +3,7 @@
 if (!defined('BOT_MIDRASH')) die('{"code":200}');
 
 class yeshivaDetails {
-    public int $yeshivaId;
-    public string $yeshivaName;
-    public array $yeshivaSettings;
+    public $yeshivaId;
+    public $yeshivaName;
+    public $yeshivaSettings;
 }

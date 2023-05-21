@@ -33,7 +33,7 @@ class facebookApi {
 
 		if (!(isset($result['success']) && $result['success'] == true)) {
 			if (!isset($result['messages']) || empty($result['messages'])) {
-				helpers::logErrorToFile("Message not sent -> " . json_encode($data, true));
+				helpers::logErrorToFile("Message not sent -> " . json_encode(["data" => $data, "res" => $result], true));
 			}
 
 			logger::logMessage(

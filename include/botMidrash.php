@@ -6,7 +6,8 @@ class botMidrash{
 	private $rawUpdate = array();
 	private $update = NULL;
 
-	private yeshivaDetails $yeshivaDetails;
+	private /* yeshivaDetails */ $yeshivaDetails;
+	private /* user */ $currentUser;
 
 	public function __construct() {
 		db::connect(DATABASE_CONFIG["username"], DATABASE_CONFIG["password"], DATABASE_CONFIG["dbname"], DATABASE_CONFIG["host"]);
@@ -17,11 +18,19 @@ class botMidrash{
 	}
 
 	private function loadSettings() {
-		$this->yeshivaDetails->yeshivaId = (new db())->where("phone_number", $this->update->from->phoneNumber)->selectFirst('users', 'yeshiva_id', [])['yeshiva_id'] ?? -1;
+		$this->currentUser = new user();
+		$this->currentUser->id = (new db())->where("phone_number", $this->update->from->phoneNumber)->selectFirst('users', 'id', [])['id'] ?? -1;
+		$this->currentUser->last_use = date("Y-m-d H:i:s");
+
+		$this->yeshivaDetails = new yeshivaDetails();
+		$this->yeshivaDetails->yeshivaId = $this->currentUser->yeshiva_id;
 
 		$yeshiva = (new db())->where('id', $this->yeshivaDetails->yeshivaId)->selectFirst('yeshivot');
 		if (empty($yeshiva) || $yeshiva['disable']) {
 			// TODO: settings for unrgister yeshiva.
+
+			$this->yeshivaDetails->yeshivaId = -1;
+			$this->yeshivaDetails->yeshivaName = "הישיבה הכללית";
 		}
 		else {
 			$this->yeshivaDetails->yeshivaName = $yeshiva['name'];
@@ -69,7 +78,7 @@ class botMidrash{
 				logger::updateMessageStatus($this->update->messageId, $this->update->status);
 			}
 			else {
-				helpers::logErrorToFile("Error update not exist -> " . $this->update ->toJson());
+				helpers::logErrorToFile("Error update not exist -> " . $this->update->toJson());
 			}
 		}
 		else if ($this->update instanceof waUpdateMessage) {
@@ -85,10 +94,11 @@ class botMidrash{
 					$this->update->toJson(),
 					avalibleWaUpdateStatuses::READ
 				);
-				facebookApi::markMessageRead($this->update->messageId);
+				// facebookApi::markMessageRead($this->update->messageId);
 
 				$avalibleCommands = array(
-					'commandDayTimes'
+					'commandDayTimes',
+					'commandSearchLesson'
 				);
 
 				$foundCommand = false;
@@ -96,20 +106,22 @@ class botMidrash{
 					$command = (new $className());
 					if ($this->update->type == $command::command_message_type) {
 						if (helpers::checkIfRunThisCommand($command::command, $command::command_type, $this->update)) {
-							if ($command::need_auth && ($this->yeshivaDetails->yeshivaId != -1)) {
-								$command->run($this->update, $this->yeshivaDetails);
+							if ($command::need_auth && $this->yeshivaDetails->yeshivaId -= -1) {
+								(new notAuthUser())->run($this->update, $this->yeshivaDetails);
 								$foundCommand = true;
 								break;
 							}
 							else {
-								(new notAuthUser())->run($this->update, $this->yeshivaDetails);
+								$command->run($this->update, $this->yeshivaDetails);
+								$foundCommand = true;
+								break;
 							}
 						}
 					}
 				}
 
 				if (!$foundCommand) {
-					(new defualtCommand())->run($this->update, $this->yeshivaDetails);
+					// (new defualtCommand())->run($this->update, $this->yeshivaDetails);
 				}
 			}
 		}
