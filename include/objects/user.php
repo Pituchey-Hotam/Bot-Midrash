@@ -3,7 +3,7 @@
 if (!defined('BOT_MIDRASH')) die('{"code":200}');
 
 class user {
-    public $id;
+    public $id = -1;
     
     private static $validNames = array(
         "first_name",
@@ -23,17 +23,25 @@ class user {
     );
 
     public function __get($name) {
-        if (!in_array($name, user::$validNames)) {
-            helpers::logErrorToFile("Try to get invalid param of user -> " . $name);
+        if ($this->id < 0) {
+            helpers::logErrorToFile("User not initilaize");
         }
         else {
-            return (new db())->where("id", $this->id)->selectFirst('users', $name, [])[$name] ?? false;
+            if (!in_array($name, user::$validNames)) {
+                helpers::logErrorToFile("Try to get invalid param of user -> " . $name);
+            }
+            else {
+                return (new db())->where("id", $this->id)->selectFirst('users', $name, [])[$name] ?? false;
+            }
         }
     }
 
     public function __set($name, $value) {
         if ($name == "id") {
             $this->id = $value;
+        }
+        else if ($this->id < 0) {
+            helpers::logErrorToFile("User not initilaize");
         }
         else {
             if (!in_array($name, user::$validNames)) {

@@ -8,11 +8,12 @@ class commandSearchLesson extends command {
     const command_type = avalibleCommandsType::START_WITH;
     const need_auth = false;
 
-    public static function run(waUpdateMessage $update, yeshivaDetails $yeshivaDetails) {
-        $searchData = helpers::parseCommand(self::command, self::command_type, $update)[0];
+    public static function run(waUpdateMessage $update, yeshivaDetails $yeshivaDetails, user $currentUser) {
+        $searchData = helpers::parseCommand(self::command, self::command_type, $update)[0] ?? "";
 
         if (mb_strlen($searchData) < 3) {
-            facebookApi::sendText($update->from->phoneNumber, "*לא נמצא תוכן לחיפוש, נסה שנית.*", $update->messageId);
+            facebookApi::sendText($update->from->phoneNumber, "אנא הזן את שם השיעור שברצונך לחפש: ", $update->messageId);
+            $currentUser->waiting_command = __CLASS__;
         }
         else {
             $BaseUrl = "https://www.ybm.org.il/api/LessonsList/LessonsList";

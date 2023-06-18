@@ -98,30 +98,39 @@ class botMidrash{
 
 				$avalibleCommands = array(
 					'commandDayTimes',
-					'commandSearchLesson'
+					'commandSearchLesson',
+					'commandSearchContact'
 				);
 
 				$foundCommand = false;
+
+				if (!in_array($this->currentUser->waiting_command, $avalibleCommands)) {
+					$this->currentUser->waiting_command = "";
+				}
+
 				foreach ($avalibleCommands as $className) {
 					$command = (new $className());
 					if ($this->update->type == $command::command_message_type) {
-						if (helpers::checkIfRunThisCommand($command::command, $command::command_type, $this->update)) {
-							if ($command::need_auth && $this->yeshivaDetails->yeshivaId -= -1) {
-								(new notAuthUser())->run($this->update, $this->yeshivaDetails);
-								$foundCommand = true;
-								break;
-							}
-							else {
-								$command->run($this->update, $this->yeshivaDetails);
-								$foundCommand = true;
-								break;
-							}
+						if ($className == $this->currentUser->waiting_command ||
+							helpers::checkIfRunThisCommand($command::command, $command::command_type, $this->update)) {
+								$this->currentUser->waiting_command = "";
+
+								if ($command::need_auth && $this->yeshivaDetails->yeshivaId == -1) {
+									(new notAuthUser())->run($this->update, $this->yeshivaDetails, $this->currentUser);
+									$foundCommand = true;
+									break;
+								}
+								else {
+									$command->run($this->update, $this->yeshivaDetails, $this->currentUser);
+									$foundCommand = true;
+									break;
+								}
 						}
 					}
 				}
 
 				if (!$foundCommand) {
-					// (new defualtCommand())->run($this->update, $this->yeshivaDetails);
+					// (new defualtCommand())->run($this->update, $this->yeshivaDetails, $this->currentUser);
 				}
 			}
 		}

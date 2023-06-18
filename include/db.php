@@ -44,6 +44,10 @@ class db {
 		return self::$info['insert_id'];
 	}
 
+	static public function cleanString($str) {
+		return self::$connection->real_escape_string($str);
+	}
+
 	private function __where($info, $type = 'AND') {
 		$where = self::$where;
 		foreach ($info as $row => $value) {
