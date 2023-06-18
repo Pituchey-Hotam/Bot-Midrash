@@ -29,11 +29,11 @@ class commandSearchContact extends command {
 
                 foreach ($rawContactsData as $rawContact) {
                     $contact = array();
-                    $contact['name']['formatted_name'] = $rawContact['first_name'] . " " . $rawContact['last_name'] . " - " . $rawContact['category'] . " - מעלה אדומים";
+                    $contact['name']['formatted_name'] = $rawContact['first_name'] . " " . $rawContact['last_name'] . " - " . $rawContact['category'] . " - " . $yeshivaDetails->yeshivaName;
                     $contact['name']['first_name'] = $rawContact['first_name'];
                     $contact['name']['last_name'] = $rawContact['last_name'];
-                    $contact['name']['suffix'] = " - מעלה אדומים";
-                    $contact['org']['company'] = "ישיבת ברכת משה, מעלה אדומים.";
+                    $contact['name']['suffix'] = " - " . $yeshivaDetails->yeshivaName;
+                    $contact['org']['company'] = $yeshivaDetails->yeshivaName;
                     $contact['org']['department'] = "תלמיד מחזור " . $rawContact['category'];
                     
                     if(!empty($rawContact['phone_number'])){

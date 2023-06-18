@@ -9,6 +9,8 @@ class commandDayTimes extends command {
     const need_auth = false;
 
     public static function run(waUpdateMessage $update, yeshivaDetails $yeshivaDetails, user $currentUser) {
+        // TODO: get the lat and long from the $yeshivaDetails->yeshivaSettings;
+
         $sunInfo = date_sun_info(time(), 31.771959, 35.217018);
         $zmanitMga  = ((($sunInfo['sunset'] + (72 * 60)) - ($sunInfo['sunrise'] - (72 * 60))) / 12) / 60;
         $zmanitGra  = (($sunInfo['sunset'] - $sunInfo['sunrise']) / 12) / 60;
