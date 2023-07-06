@@ -2,11 +2,11 @@
 <?php
 session_name("YE_UPDATE");
 session_start();
+require_once(__DIR__ . "/html.php");
 //$users = json_decode(file_get_contents(BOT_MIDRASH_INCLUDE_DIR . "/data/users.json"), true);
 //$options = json_decode(file_get_contents(BOT_MIDRASH_INCLUDE_DIR . "/data/permissions.json"), true);
 
 if(isset($_GET['logout'])){
-  echo 'logout';
     session_unset();
     session_destroy();
     header('refrash: 0');
@@ -17,9 +17,69 @@ $_SESSION['YE_UPDATE_User']['Status']==='In'){
   if(!isset($_GET['act']) || !is_string($_GET['act'])){
     printHome();
   }
-  elseif($_GET['act'] == "33"){
-    echo '3333';
-}
+  //
+  elseif($_GET['act'] == "update-prays"){
+    admin__updatePrays();
+  }
+  elseif($_GET['act'] == "update-books"){
+      admin__updateBooks();
+  }
+  elseif($_GET['act'] == "shabat-menu"){
+      admin__shabatMenu();
+  }
+  elseif($_GET['act'] == "block-users"){
+      admin__blockAndFreeUsers();
+  }
+  elseif($_GET['act'] == "send-one-message"){
+      admin__sendMessageToUser();
+  }
+  elseif($_GET['act'] == "update-contacts"){
+      admin__updateContacts();
+  }
+  elseif($_GET['act'] == "shifts-table"){
+      admin__updateShiftsTable();
+  }
+  elseif($_GET['act'] == "guards-table"){
+      admin__updateGuardsTable();
+  }
+  elseif($_GET['act'] == "send-message-to-all-users"){
+      admin__sendMessageToAllUsers();
+  }
+  elseif($_GET['act'] == "send-special-reminde"){
+      admin__sendSpecialRegister();
+  }
+  elseif($_GET['act'] == "chats-log-messages"){
+      admin__printLastChatsHtml();
+  }
+  elseif($_GET['act'] == "user-messages-log"){
+      admin__printLogMessagesUserHtml();
+  }
+  elseif($_GET['act'] == "show-json"){
+      admin__printJson();
+  }
+  elseif($_GET['act'] == "upload-image"){
+      admin__uploadPhotos();
+  }
+  elseif($_GET['act'] == "view-images"){
+      admin__printImagesTable();
+  }
+  elseif($_GET['act'] == "delete-image"){
+      admin__deletePhoto();
+  }
+  elseif($_GET['act'] == "manage-users"){
+      admin__manageUsers();
+  }
+  elseif($_GET['act'] == "manage-users-permissions"){
+      admin__manageUsersPermissions();
+  }
+  else{
+      http_response_code(404);
+      $title = "הפעולה לא נמצאה";
+      $message = '<h2 style="color:red;">הפעולה לא נמצאה</h2>';
+      //printHeadWithDiv($title, $message);
+      
+  }
+
 }
 
 else if (isset($_POST['code'])&& $_POST['code']===$_SESSION['YE_UPDATE_User']['Code']){
@@ -52,9 +112,13 @@ else {
 }
 
 function printHome(){
-$myfile = fopen("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\include\\index.html", "r") or die("Unable to open file!");
-echo fread($myfile,filesize("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\include\\index.html"));
+$myfile = fopen("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\index.html", "r") or die("Unable to open file!");
+echo fread($myfile,filesize("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\index.html"));
 fclose($myfile);
+if (isset($_SESSION['YE_UPDATE_Mes'])){
+  echo $_SESSION['YE_UPDATE_Mes'];
+  $_SESSION['YE_UPDATE_Mes']='';
+}
 }
 
 function printLogin(){

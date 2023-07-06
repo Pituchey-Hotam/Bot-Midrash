@@ -18,9 +18,9 @@
         ניהול
       </button>
       <div class="dropdown-menu text-right">
-        <a class="dropdown-item" href="#">חסימת משתמש</a>
-        <a class="dropdown-item" href="#">ניהול משתמשים</a>
-        <a class="dropdown-item" href="#">ניהול הרשאות</a>
+        <a class="dropdown-item" href="?act=block-users">חסימת משתמש</a>
+        <a class="dropdown-item" href="?act=manage-users">עריכת מנהלים</a>
+        <a class="dropdown-item" href="?act=manage-users-permissions">ניהול הרשאות</a>
       </div>
     </div>
 
@@ -30,10 +30,10 @@
         הודעות
       </button>
       <div class="dropdown-menu text-right">
-        <a class="dropdown-item" href="#">תזכורת לשבת</a>
-        <a class="dropdown-item" href="#">תזכורת מיוחדת</a>
-        <a class="dropdown-item" href="#">שליחת הודעת תפוצה</a>
-        <a class="dropdown-item" href="#">שליחת הודעה למשתמש</a>
+        <a class="dropdown-item" href="?act=shabat-menu">תזכורת לשבת</a>
+        <a class="dropdown-item" href="?act=send-special-reminde">תזכורת מיוחדת</a>
+        <a class="dropdown-item" href="?act=send-message-to-all-users">שליחת הודעת תפוצה</a>
+        <a class="dropdown-item" href="?act=send-one-message">שליחת הודעה למשתמש</a>
       </div>
     </div>
 
@@ -43,11 +43,10 @@
         פקודות ישיבתיות <!--צריך שם אחר וצריך לקבל את המידע מהDB-->
       </button>
       <div class="dropdown-menu text-right">
-        <a class="dropdown-item" href="#">שיבוץ שומרים</a>
-        <a class="dropdown-item" href="#">שיבוץ תורנים</a>
-        <a class="dropdown-item" href="#">עדכון זמני תפילות</a>
-        <a class="dropdown-item" href="#">עדכון זמני היום</a>
-        <a class="dropdown-item" href="#">עדכון מחירי ספרים</a>
+        <a class="dropdown-item" href="?act=guards-table">שיבוץ שומרים</a>
+        <a class="dropdown-item" href="?act=shifts-table">שיבוץ תורנים</a>
+        <a class="dropdown-item" href="?act=update-prays">עדכון זמני תפילות</a>
+        <a class="dropdown-item" href="?act=update-books">עדכון מחירי ספרים</a>
       </div>
     </div>
 
@@ -57,9 +56,9 @@
         אנשי קשר
       </button>
       <div class="dropdown-menu text-right">
-        <a class="dropdown-item" href="#">עדכון אנשי קשר</a>
-        <a class="dropdown-item" href="#">העלאת תמונות</a>
-        <a class="dropdown-item" href="#">צפייה בתמונות</a>
+        <a class="dropdown-item" href="?act=update-contacts">עדכון אנשי קשר</a>
+        <a class="dropdown-item" href="?act=upload-image">העלאת תמונות</a>
+        <a class="dropdown-item" href="?act=view-images">צפייה בתמונות</a>
       </div>
     </div>
     <a class="btn btn-success" href="?logout">התנתק</a>
