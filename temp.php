@@ -3,21 +3,40 @@
 session_name("YE_UPDATE");
 session_start();
 require_once(__DIR__ . "/html.php");
-//$users = json_decode(file_get_contents(BOT_MIDRASH_INCLUDE_DIR . "/data/users.json"), true);
-//$options = json_decode(file_get_contents(BOT_MIDRASH_INCLUDE_DIR . "/data/permissions.json"), true);
+$users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
+$options = json_decode(file_get_contents(__DIR__ . "/data/permissions.json"), true);
 
 if(isset($_GET['logout'])){
     session_unset();
     session_destroy();
-    header('refrash: 0');
-}
+    headerHome();
+  }
 
 if(isset($_SESSION['YE_UPDATE_User']['Status'])&& 
 $_SESSION['YE_UPDATE_User']['Status']==='In'){
+$loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
+  if(!empty($_GET['act'])){
+    $error = false;
+    
+    if(!isset($options[$_GET['act']])){
+        $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:red;'>הפעולה לא מוגדרת!</h2>";
+        $error = true;
+    }
+    elseif(!in_array($loggedUser, $options[$_GET['act']])){
+        $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:red;'>אינך מורשה לבצע פעולה זו</h2>";
+        $error = true;
+    }
+    
+    if($error){
+        header("Location: ".$_SERVER['SCRIPT_NAME']);
+    }
+  }
+  //acts
+{
   if(!isset($_GET['act']) || !is_string($_GET['act'])){
     printHome();
   }
-  //
+  //acts
   elseif($_GET['act'] == "update-prays"){
     admin__updatePrays();
   }
@@ -79,6 +98,7 @@ $_SESSION['YE_UPDATE_User']['Status']==='In'){
       //printHeadWithDiv($title, $message);
       
   }
+}
 
 }
 
@@ -91,15 +111,17 @@ else if (isset($_POST['code'])&& $_POST['code']===$_SESSION['YE_UPDATE_User']['C
 else if (array_key_exists('phone', $_POST)) {
   $phone=$_POST['phone'];
     if (checkPhone($phone)){
-      $phone=intval($phone);
-      $user='נריה';//db::query()
+      $user=$users[$phone];
       //אימות
       $code='1111';//rand(1000,10000);
       $_SESSION['YE_UPDATE_User']['Code']=$code;
       //to do: send code to user
       $_SESSION['YE_UPDATE_User']['Status']='auth';
-      $_SESSION['YE_UPDATE_User']['Logged']=$user;
+      $_SESSION['YE_UPDATE_User']['Logged']=array($user,$phone);
       printAuth();
+    }
+    else{
+      headerHome();
     }
 }
 
@@ -130,13 +152,14 @@ function printLogin(){
 }
 
 function checkPhone($phone){
-  return (!empty($phone)&& strlen($phone)===9 && intval($phone)===999999999);
+  $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
+
+  return (!empty($phone) && strlen($phone)===10 && array_key_exists($phone, $users));
 }
 
 function printAuth(){
-
+  echo $_SESSION['YE_UPDATE_User']['Logged'][0];
   // else{
-  echo $_SESSION['YE_UPDATE_User']['Code'];
   echo '<form method="POST">
     <input type="text" name="code" placeholder="קוד אימות" autofocus="autofocus"><br><br>
     <button type="submit">כניסה</button>
@@ -145,5 +168,8 @@ function printAuth(){
     <!--a href="?back" style="color:blue;">חזור</a-->
     </div>';
   // }
+}
+function headerHome(){
+  header('Location:'.$_SERVER['SCRIPT_NAME']);
 }
 ?>
