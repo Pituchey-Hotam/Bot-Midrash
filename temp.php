@@ -18,9 +18,11 @@ $loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
   if(!empty($_GET['act'])){
     $error = false;
     
-    if(!isset($options[$_GET['act']])){
+    if(!array_key_exists($_GET['act'],$options)){
         $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:red;'>הפעולה לא מוגדרת!</h2>";
+        echo 'ddddd';
         $error = true;
+        headerHome();
     }
     elseif(!in_array($loggedUser, $options[$_GET['act']])){
         $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:red;'>אינך מורשה לבצע פעולה זו</h2>";
@@ -28,7 +30,7 @@ $loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
     }
     
     if($error){
-        header("Location: ".$_SERVER['SCRIPT_NAME']);
+        headerHome();
     }
   }
   //acts
@@ -37,12 +39,7 @@ $loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
     printHome();
   }
   //acts
-  elseif($_GET['act'] == "update-prays"){
-    admin__updatePrays();
-  }
-  elseif($_GET['act'] == "update-books"){
-      admin__updateBooks();
-  }
+
   elseif($_GET['act'] == "shabat-menu"){
       admin__shabatMenu();
   }
@@ -90,6 +87,9 @@ $loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
   }
   elseif($_GET['act'] == "manage-users-permissions"){
       admin__manageUsersPermissions();
+  }
+  elseif($_GET['act'] == "settings"){
+      admin__settings();
   }
   else{
       http_response_code(404);
@@ -170,6 +170,6 @@ function printAuth(){
   // }
 }
 function headerHome(){
-  header('Location:'.$_SERVER['SCRIPT_NAME']);
+  header('Location: '.$_SERVER['SCRIPT_NAME']);
 }
 ?>
