@@ -38,7 +38,6 @@ $loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
   if(!isset($_GET['act']) || !is_string($_GET['act'])){
     printHome();
   }
-  //acts
 
   elseif($_GET['act'] == "shabat-menu"){
       admin__shabatMenu();

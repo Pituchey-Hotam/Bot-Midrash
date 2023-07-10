@@ -1,5 +1,5 @@
 <?php
-
+define('MASTER_USER','master');
 function admin__shabatMenu(){
 
 }
@@ -60,7 +60,7 @@ function admin__sendMessageToUser(){
 
             $from = $_POST['phone'];
             $messageId = "adminPanel_send_one_message__" . uniqid();
-            sendMessage($_POST['phone'], "text", $_POST['send-message-one-user']);
+            //sendMessage($_POST['phone'], "text", $_POST['send-message-one-user']);
             $adminPanelMes = "במידה והמשתמש פעיל בבוט, ההודעה נשלחה בהצלחה";
         
         if(isset($_GET['close-after-send'])){
@@ -124,7 +124,7 @@ function admin__sendMessageToUser(){
     }
 }
 function admin__updateContacts(){
-    
+
 }
 function admin__updateShiftsTable(){}
 function admin__updateGuardsTable(){}
@@ -187,7 +187,87 @@ function admin__manageUsers(){
             </div>';
     }
 }
-function admin__manageUsersPermissions(){}
+function admin__manageUsersPermissions(){
+    global $options;
+    global $users;
+    
+    if(isset($_POST['update-users-permissions-post']) && isset($_POST['permissions']) && is_array($_POST['permissions'])){
+        $newPermissions = array();
+        
+        // Set all options in the arr.
+        foreach($_POST['permissions'] as $user => $userPermissions){
+            foreach ($userPermissions as $permission => $mode){
+                $newPermissions[$permission] = array();
+            }
+            break;
+        }
+        
+        // Fill the options by users.
+        foreach($_POST['permissions'] as $user => $userPermissions){
+            foreach ($userPermissions as $permission => $mode){
+                if($mode === "1"){
+                    $newPermissions[$permission][] = $user;
+                }
+            }
+        }
+        
+        file_put_contents(__DIR__ . "/data/permissions.json", json_encode($newPermissions));
+        
+        $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:darkturquoise;'>עדכון ההרשאות בוצע בהצלחה! שכוייעח 😘</h2>";
+        headerHome();
+    }
+    else{
+        $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
+        echo '
+        <div align="center" dir="rtl">
+            ניהול הרשאות משתמשים
+            <style>.yes{color:black;background-color:limegreen;font-weight:bold;} .no{color:black;background-color:lightcoral;}</style>
+            <script>
+                function changeClass(select){
+                    if(select.value == "1"){
+                        select.setAttribute("class", "yes");
+                    }
+                    else{
+                        select.setAttribute("class", "no");
+                    }
+                }
+            </script>
+            <form method="POST">
+            <table border=1>';
+        
+            echo "\n\t\t\t\t\t" . '<tr>';
+            echo '<th>שם הרשאה</th>';
+            foreach ($users as $user => $notInUse){
+                if ($users[$user] == MASTER_USER) continue;
+                
+                echo '<th>' . htmlspecialchars($users[$user]) . '</th>';
+            }
+            echo '</tr>';
+            
+            foreach ($options as $optionName => $allowUsers){
+                echo "\n\t\t\t\t\t" . '<tr>';
+                echo '<td>' . htmlspecialchars($optionName) . '</td>';
+                foreach ($users as $user => $notInUse_2){
+                    if ($users[$user] == MASTER_USER) continue;
+                    
+                    echo '<td>';
+                    echo '<select onchange="changeClass(this)" class="' . (in_array($user, $allowUsers) ? "yes" : "no") . '" name="permissions[' . htmlspecialchars($user) . '][' . htmlspecialchars($optionName) . ']">';
+                    echo '<option class="yes" value="1" ' . (in_array($user, $allowUsers) ? "selected" : "") . '>כן</option><option class="no" value="0" ' . (in_array($user, $allowUsers) ? "" : "selected") . '>לא</option>';
+                    echo '</select>';
+                    echo '</td>';
+                }
+                echo '</tr>';
+            }
+        
+        echo '
+            </table>
+            <br><br>
+            <button type="submit" name="update-users-permissions-post">עדכן</button>
+        </form>
+        </div>
+        ';
+    }
+}
 
 function admin__settings(){
     $myfile = fopen("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\settings.html", "r") or die("Unable to open file!");
