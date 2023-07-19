@@ -20,7 +20,6 @@ $loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
     
     if(!array_key_exists($_GET['act'],$options)){
         $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:red;'>הפעולה לא מוגדרת!</h2>";
-        echo 'ddddd';
         $error = true;
         headerHome();
     }

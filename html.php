@@ -1,5 +1,22 @@
 <?php
 define('MASTER_USER','master');
+
+function printBS(){
+    echo'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+  integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+  integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+  integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<html dir="rtl">
+<div align="center">';
+}
+
+
+
+
 function admin__shabatMenu(){
 
 }
@@ -124,16 +141,104 @@ function admin__sendMessageToUser(){
     }
 }
 function admin__updateContacts(){
+    //$link=getContactsLink(yeshivaID);
+    $link='https://google.com';
+    $count=3;
 
+    if(isset($_POST["update-contacts-request"])){
+        //initSheets();
+        //updateAllContactsFromGoogleSheets();
+        
+        //$count = getCountOfContactsUsers();
+        
+        $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:darkturquoise;'>" . $count . " אנשי הקשר עודכנו מהגוגל שיטס בהצלחה! תבורך 😘</h2>";
+    
+        headerHome();
+    }
+    else{
+        //$yID=select yeshivaID from users where phone=$_SESSION['YE_UPDATE_User']['Logged'];
+        //$count=select count(id) from users where yeshivaId=
+        echo '<div align="center">
+        <form method="POST">
+            <h2>מספר המשתמשים הקיים '.$count.'</h2>
+            <button name="update-contacts-request">עדכן</button>
+            <br><br>
+            <a href='.$link.' target="_blank">קובץ המשתמשים</a>
+            </form>
+            </div>
+        ';
+    }
 }
 function admin__updateShiftsTable(){}
 function admin__updateGuardsTable(){}
-function admin__sendMessageToAllUsers(){}
+function admin__sendMessageToAllUsers(){
+    if(isset($_POST['txt'])){}
+    else{
+        printBS();
+        echo '<form><br>
+        <div>
+            <button >שלח</button><br><br>
+            <textarea cols="50" rows="10" name="txt"></textarea>
+            </div>
+            </form>
+        ';
+    }
+}
 function admin__sendSpecialRegister(){}
 function admin__printLastChatsHtml(){}
 function admin__printLogMessagesUserHtml(){}
 function admin__printJson(){}
-function admin__uploadPhotos(){}
+function admin__uploadPhotos(){
+    if(isset($_POST['upload']) && isset($_POST['img'])){
+        foreach ($_POST['img'] as $img) {
+            move_uploaded_file($_FILES["img"]["tmp_name"], 
+            basename($_FILES["img"]["name"]));
+        }
+    }
+    
+    else{
+        printBS();
+        echo '<form method="POST"><br>
+        <button class="btn btn-success" name="upload">עדכן</button>
+        <br>
+        <br>
+        <table class="table">
+        <thead>
+            <tr>
+            <th scope="col">#</th>
+            <th scope="col">שם</th>
+            <th scope="col">טלפון</th>
+            <th scope="col">תמונה</th>
+            </tr>
+        </thead>
+        <tbody>';
+        $i=0;
+        $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
+        foreach ($users as $key=>$value) {
+            $user=array($key=>$value);
+            echo'
+                <tr>
+                <th scope="row">'.$i.'</th>
+                <td>'.$value.'</td>
+                <td>'.$key.'</td>
+                <td>
+                    <label for="img">בחר קובץ</label>
+                    <input type="file" id="img" name="img['.$i.']" accept="image/*">
+                </td>
+                </tr>
+            ';
+            $i++;
+        }
+        echo '</tbody></table></form>';
+        
+    //     <label for="img">בחר קובץ</label>
+    //     <input type="file" id="img" name="img" accept="image/*">
+    //     <button type="submit">עדכן</button>
+    //   </form>
+    //   </div>;
+    //   </html>';
+    }
+}
 function admin__printImagesTable(){}
 function admin__deletePhoto(){}
 function admin__manageUsers(){
@@ -270,8 +375,47 @@ function admin__manageUsersPermissions(){
 }
 
 function admin__settings(){
-    $myfile = fopen("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\settings.html", "r") or die("Unable to open file!");
-echo fread($myfile,filesize("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\settings.html"));
-fclose($myfile);
+    printBS();
+    echo '
+        <form name="POST">
+            <div align="center"><br>
+                <button name="update">עדכן</button><br><br>
+                <input placeholder="קישור לרישום שבתות"><br><br>
+                תמונת הישיבה
+                <input type="file" name="logo" accept="image/*"><br><br>
+                <input placeholder="קישור לרישום שמירות"><br><br>';
+    //$commands=getCommands(yeshivaID);
+    $commands=array("zr"=>"mjgdhbvcgnhdmj,jmnbv");
+    foreach ($commands as $key => $value) {
+        echo '<div>
+        <button type="button" onclick="delLine()">הסר</button>
+        <input value="שם פקודה">
+        <input value="'.htmlspecialchars($key).'">
+        <input value="תיאור פקודה">
+        <input value="'.htmlspecialchars($value).'" width="50" height="300">
+        <br><br>
+        </div>';
+    }
+    echo'
+                <div id="lineContainer"> </div>
+                <button onclick="addLine()" type="button">הוסף פקודה</button>
+                <script>
+                    const lineContainer = document.getElementById("lineContainer");
+                    function addLine() {
+                        lineContainer.innerHTML += ` <div>
+                            <button type="button" onclick="delLine()">הסר</button>
+                            <input placeholder="שם פקודה">
+                            <input placeholder="קוד פקודה">
+                            <input placeholder="תיאור פקודה">
+                            <input placeholder="טקסט פקודה" width="50" height="300">
+                            <br><br>
+                            </div>
+                            `;
+                    }
+                </script>
+            </div>
+        </form>
+
+        </html>';
 }
 ?>
