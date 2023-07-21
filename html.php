@@ -1,5 +1,6 @@
 <?php
 define('MASTER_USER','master');
+define('MAX_SIZE',5000000);
 
 function printBS(){
     echo'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
@@ -13,7 +14,6 @@ function printBS(){
 <html dir="rtl">
 <div align="center">';
 }
-
 
 
 
@@ -189,16 +189,32 @@ function admin__printLastChatsHtml(){}
 function admin__printLogMessagesUserHtml(){}
 function admin__printJson(){}
 function admin__uploadPhotos(){
-    if(isset($_POST['upload']) && isset($_POST['img'])){
-        foreach ($_POST['img'] as $img) {
-            move_uploaded_file($_FILES["img"]["tmp_name"], 
-            basename($_FILES["img"]["name"]));
+    $target='C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\data\\';
+
+    if(isset($_POST['upload'])){
+        echo '<br><br>';
+        print_r($_FILES);
+        $i=0;
+        foreach ($_FILES['img']['name'] as $img) {
+            echo '<br>'.sizeof($_FILES['img']['name']);
+            if ($i==sizeof($_FILES['img']['name'])){
+                break;
+            }
+            echo '<br>'.$_FILES['img']['name'][$i].'<br>';
+            if ($_FILES['img']['name'][$i]==''){
+                continue;
+            }
+            echo'<br><br>'.$i;
+            print_r($_FILES["img"]["tmp_name"][$i]);
+            saveP($_FILES,$i/*["img"]["tmp_name"][$i], $target.$i.'.jpg'*/);
+            ++$i;
         }
+        headerHome();
     }
     
     else{
         printBS();
-        echo '<form method="POST"><br>
+        echo '<form method="POST" enctype="multipart/form-data"><br>
         <button class="btn btn-success" name="upload">עדכן</button>
         <br>
         <br>
@@ -223,7 +239,7 @@ function admin__uploadPhotos(){
                 <td>'.$key.'</td>
                 <td>
                     <label for="img">בחר קובץ</label>
-                    <input type="file" id="img" name="img['.$i.']" accept="image/*">
+                    <input type="file" id="img['.$i.']" name="img['.$i.']" accept="image/*">
                 </td>
                 </tr>
             ';
@@ -239,7 +255,9 @@ function admin__uploadPhotos(){
     //   </html>';
     }
 }
-function admin__printImagesTable(){}
+function admin__printImagesTable(){
+
+}
 function admin__deletePhoto(){}
 function admin__manageUsers(){
     if (isset($_POST["phone"])){
@@ -375,47 +393,123 @@ function admin__manageUsersPermissions(){
 }
 
 function admin__settings(){
+    if (isset($_POST['update'])){
+        print_r($_POST);
+        print_r($_FILES);
+        if ($_POST['shabat']!=''){
+            echo'<br>s<br><br>';
+            //set in DB
+        }
+        if($_POST['calls']!=''){
+            echo'<br>c<br><br>';
+            //set in DB
+        }
+        if($_POST['guards']!=''){
+            echo'<br>g<br><br>';
+            //set in DB
+        }
+        if(isset($_FILES['logo'])){
+            //set in DB
+            echo 'sssssssssss';
+        }
+
+        for ($i=0; $i < (sizeof($_POST)-5)/3; ++$i) { 
+            echo $_POST['code'.$i];
+            echo'<br>';
+            echo $_POST['desc'.$i];
+            echo'<br>';
+            echo $_POST['text'.$i];
+            //db..
+        }
+        headerHome();
+    }
+    else {
     printBS();
     echo '
-        <form name="POST">
+        <form method="POST" enctype="multipart/form-data">
             <div align="center"><br>
                 <button name="update">עדכן</button><br><br>
-                <input placeholder="קישור לרישום שבתות"><br><br>
+                <input type="url" name="shabat" placeholder="קישור לרישום שבתות">
+                <input type="url" name="calls" placeholder="קישור לקובץ אנשי קשר">
+                <input type="url" name="guards" placeholder="קישור לרישום שמירות"><br><br>
                 תמונת הישיבה
-                <input type="file" name="logo" accept="image/*"><br><br>
-                <input placeholder="קישור לרישום שמירות"><br><br>';
+                <input type="file" name="logo" accept="image/*"><br><br>';
     //$commands=getCommands(yeshivaID);
-    $commands=array("zr"=>"mjgdhbvcgnhdmj,jmnbv");
+    $commands=array("zr"=>["mjgd","bfggbghyjtnhfbdv"]);
+    $i=0;
+    $commandsInput='';
     foreach ($commands as $key => $value) {
-        echo '<div>
-        <button type="button" onclick="delLine()">הסר</button>
-        <input value="שם פקודה">
-        <input value="'.htmlspecialchars($key).'">
-        <input value="תיאור פקודה">
-        <input value="'.htmlspecialchars($value).'" width="50" height="300">
+        $commandsInput.='<div id="'.$i.'">
+        <button type="button" onclick="delLine('.$i.')">הסר</button>
+        <input name="code'.$i.'" value="'.htmlspecialchars($key).'">
+        <input name="desc'.$i.'" value="'.htmlspecialchars($value[0]).'">
+        <input name="text'.$i.'" value="'.htmlspecialchars($value[1]).'" width="50" height="300">
         <br><br>
         </div>';
+        ++$i;
     }
     echo'
-                <div id="lineContainer"> </div>
+                <div id="lineContainer">'.$commandsInput.' </div>
                 <button onclick="addLine()" type="button">הוסף פקודה</button>
                 <script>
                     const lineContainer = document.getElementById("lineContainer");
+                    var i = '.$i.';
                     function addLine() {
-                        lineContainer.innerHTML += ` <div>
-                            <button type="button" onclick="delLine()">הסר</button>
-                            <input placeholder="שם פקודה">
-                            <input placeholder="קוד פקודה">
-                            <input placeholder="תיאור פקודה">
-                            <input placeholder="טקסט פקודה" width="50" height="300">
-                            <br><br>
-                            </div>
-                            `;
+                        lineContainer.innerHTML += ` <div id="`+i+`">
+                        <button type="button" onclick="delLine(`+i+`)">הסר</button>
+                        <!--input placeholder="שם פקודה"-->
+                        <input name="code`+i+`" placeholder="קוד פקודה">
+                        <input name="desc`+i+`" placeholder="תיאור פקודה">
+                        <input name="text`+i+`" placeholder="טקסט פקודה" width="50" height="300">
+                        <br><br>
+                        </div>
+                        `;
+                        ++i;
+                    }
+                    function delLine(index){
+                        const element=document.getElementById(index.toString());
+                        element.remove();
                     }
                 </script>
             </div>
         </form>
-
         </html>';
+    }
 }
+
+function saveP($files,$index){
+    $target_dir = "data/";
+    //print_r($_FILES);
+    $target_file = $target_dir . basename($_FILES["img"]["name"][$index]);
+    $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+    
+    if (!isset($_SESSION['YE_UPDATE_Mes'])){
+        $_SESSION['YE_UPDATE_Mes']='';
+    }
+
+    // Check if image file is a actual image or fake image
+    echo '<br><br>'.$_FILES["img"]["tmp_name"][$index];
+    // $check = getimagesize($_FILES["img"]["tmp_name"][$index]);
+    // if($check == false) {
+    //     $_SESSION['YE_UPDATE_Mes'].= "File is not an image.";
+    // }
+        
+    // Check file size
+    if ($_FILES["img"]["size"][$index] > MAX_SIZE) {
+        $_SESSION['YE_UPDATE_Mes'].='<br>התמונה גדולה מדי'.$index;
+    }
+    // Allow certain file formats
+    else if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg") {
+    $_SESSION['YE_UPDATE_Mes'].= "<br>Sorry, only JPG, JPEG & PNG files are allowed.".$index;
+    }
+    
+    else {
+        if (move_uploaded_file($_FILES["img"]["tmp_name"][$index], $target_file)) {
+        $_SESSION['YE_UPDATE_Mes'].="<br>The file of ". $index. " has been uploaded.";
+        } else {
+        $_SESSION['YE_UPDATE_Mes'].= "<br>Sorry, there was an error uploading your file.";
+        }
+      }
+}
+
 ?>

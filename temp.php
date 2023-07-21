@@ -132,13 +132,13 @@ else {
 }
 
 function printHome(){
-$myfile = fopen("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\index.html", "r") or die("Unable to open file!");
-echo fread($myfile,filesize("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\index.html"));
-fclose($myfile);
-if (isset($_SESSION['YE_UPDATE_Mes'])){
-  echo $_SESSION['YE_UPDATE_Mes'];
-  $_SESSION['YE_UPDATE_Mes']='';
-}
+  $myfile = fopen("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\index.html", "r") or die("Unable to open file!");
+  echo fread($myfile,filesize("C:\\Users\\neria\\Documents\\GitHub\\Bot-Midrash\\index.html"));
+  fclose($myfile);
+  if (isset($_SESSION['YE_UPDATE_Mes'])){
+    echo $_SESSION['YE_UPDATE_Mes'];
+    $_SESSION['YE_UPDATE_Mes']='';
+  }
 }
 
 function printLogin(){
