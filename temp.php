@@ -142,6 +142,7 @@ function printHome(){
 }
 
 function printLogin(){
+  printBS();
   echo '<form method="POST">
           <input type="text" name="phone" placeholder="מספר טלפון" autofocus="autofocus"><br><br>
           <button type="submit">כניסה</button>
@@ -156,14 +157,15 @@ function checkPhone($phone){
 }
 
 function printAuth(){
+  printBS();
+  //print username
   echo $_SESSION['YE_UPDATE_User']['Logged'][0];
   // else{
   echo '<form method="POST">
     <input type="text" name="code" placeholder="קוד אימות" autofocus="autofocus"><br><br>
     <button type="submit">כניסה</button>
     </form>
-    <a href="?logout" style="color:blue;">התנתק...</a>
-    <!--a href="?back" style="color:blue;">חזור</a-->
+    <a href="?logout" style="color:blue;">חזור</a>
     </div>';
   // }
 }

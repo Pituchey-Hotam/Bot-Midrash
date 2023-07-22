@@ -72,7 +72,7 @@ function admin__sendMessageToUser(){
     global $from;
     global $messageId;
     
-    if(isset($_POST['send-message-one-user'], $_POST['phone']) && is_string($_POST['send-message-one-user']) && is_string($_POST['phone']) && !empty($_POST['send-message-one-user']) && !empty($_POST['phone'])){
+    if(isset($_POST['send-message-one-user'], $_POST['phone']) && !empty($_POST['send-message-one-user'])){
         $adminPanelMesColor = "darkturquoise";
 
             $from = $_POST['phone'];
@@ -87,57 +87,23 @@ function admin__sendMessageToUser(){
             header("Location: ?act=user-messages-log&phone=" . $from);
         }
         else{
-            $_SESSION['YE_BM_UPDATE_Mes'] = "<h2 style='color:" . $adminPanelMesColor . ";'>" . $adminPanelMes . "</h2>";
+            $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:" . $adminPanelMesColor . ";'>" . $adminPanelMes . "</h2>";
             headerHome();
         }
     }
-    else{
-        $title = "שליחת הודעה למשתמש";
-        
-        $phone = "";
-        $name = "";
-        
-        if(isset($_GET['phone']) && !empty(intval($_GET['phone'])) && strlen(intval($_GET['phone'])) == 12)
-            $phone = htmlspecialchars($_GET['phone']);
-            
-        if(isset($_GET['name']) && !empty($_GET['name']) && mb_strlen($_GET['name']) > 4 && mb_strlen($_GET['name']) < 30)
-            $name = htmlspecialchars($_GET['name']);
-        
+    else{            
+        printBS();
         echo '
-        <div align=center>
+        <div align=center dir="rtl">
         <form method="POST">
+            <br><br>
             מספר טלפון: 
-            <input name="phone" dir="ltr" value="' . $phone . '" required/>
+            <input name="phone" type="number" dir="ltr" required/>
             <br><br>
-            לשלוח כתבנית? <input type="checkbox" name="send-as-template" onclick="onCheckTemplate();"/>
+            תוכן ההודעה: <br><textarea rows="12" cols="50" name="send-message-one-user"></textarea>
             <br><br>
-            <div id="template-name-div">
-                לטובת התבנית, יש להזין את שם הנמען <input type="text" value="' . $name . '" name="send-as-template-name"/>
-            </div>
-            <br><br>
-            <div id="content-div"></div>
-            <script>
-                function onCheckTemplate(){
-                    var templateCheck = document.getElementsByName("send-as-template")[0];
-                    var contentDiv = document.getElementById("content-div");
-                    var templateName = document.getElementsByName("send-as-template-name")[0];
-                    var templateNameDiv = document.getElementById("template-name-div");
-                    if(templateCheck.checked){
-                        contentDiv.innerHTML = \'תוכן התבנית: <input name="send-message-one-user" style="width: 500px;" required>\';
-                        templateName.setAttribute("required", "required");
-                        templateNameDiv.style.display = "block";
-                    }
-                    else{
-                        contentDiv.innerHTML = \'תוכן ההודעה: <br><textarea rows="15" cols="35" name="send-message-one-user"></textarea>\';
-                        templateName.removeAttribute("required");
-                        templateNameDiv.style.display = "none";
-                    }
-                }
-                onCheckTemplate();
-            </script>
-            <br><br>
-            <button type="submit">שלח עכשיו</button>
-        </form></div>';
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">שלח עכשיו</button>';
+            printModal();
     }
 }
 function admin__updateContacts(){
@@ -172,16 +138,20 @@ function admin__updateContacts(){
 function admin__updateShiftsTable(){}
 function admin__updateGuardsTable(){}
 function admin__sendMessageToAllUsers(){
-    if(isset($_POST['txt'])){}
+    if(isset($_POST['message'])){
+        //send message
+        $_SESSION['YE_UPDATE_Mes']='ההודעה נשלחה בהצלחה';
+        headerHome();
+    }
     else{
         printBS();
-        echo '<form><br>
-        <div>
-            <button >שלח</button><br><br>
-            <textarea cols="50" rows="10" name="txt"></textarea>
-            </div>
-            </form>
-        ';
+        echo '<form method="POST"><br>
+        <div align="center">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                שלח
+            </button>
+            <textarea cols="50" rows="10" name="message" placeholder="הכנס את תוכן ההודעה כאן"></textarea>
+        </div>';
     }
 }
 function admin__sendSpecialRegister(){}
@@ -510,6 +480,32 @@ function saveP($files,$index){
         $_SESSION['YE_UPDATE_Mes'].= "<br>Sorry, there was an error uploading your file.";
         }
       }
+}
+
+function printModal(){
+    echo '<!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document" align="right" dir="rtl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">שליחת הודעה</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            שים לב לאחר לחיצה על אישור לא ניתן לעשות ביטול, בדוק היטב לפני שליחת ההודעה
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">חזור</button>
+                            <p>&nbsp</p>
+                            <button type="submit" name="message" class="btn btn-primary">אישור ושליחה</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>';
 }
 
 ?>
