@@ -1,8 +1,7 @@
 <?php
 define('MASTER_USER','master');
 define('MAX_SIZE',5000000);
-
-function printBS(){
+function printHead(){
     echo'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
   integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
@@ -11,15 +10,81 @@ function printBS(){
   integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
   integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-<html dir="rtl">
-<div align="center">';
+  <html dir="rtl">';
+}
+function printHeadTitle($title){
+    printHead();
+    echo'<title>'.$title.'</title>
+    <div align="center"><br>
+    <h1>'.$title.'</h1><br>
+    <h4>'.$_SESSION['YE_UPDATE_Mes'].'</h4>';
+    $_SESSION['YE_UPDATE_Mes']='';
 }
 
-
+function checkComment($comment){
+    return !(strpos($comment, "\n")!==false || strpos($comment, "    ")!==false || strpos($comment, "\t")!==false);
+}
 
 function admin__shabatMenu(){
+    print_r($_POST);
+    if (isset($_POST['update'])){
+        if (isset($_POST['shabat-comment'])&&checkComment($_POST['shabat-comment'])){
+            //set to DB
+        }
+        for ($i=0,$saturdays=iterator_to_array(getSaturdays(date("Y"), 1),true);
+            $i < sizeof($saturdays); ++$i) {
+            if (isset($_POST['cb'.$i])&&$_POST['cb'.$i]=='on'){
+            //set to DB
+            }
+        }
+        $_SESSION['YE_UPDATE_Mes']="העדכון בוצע בהצלחה";
+        headerHome();
+    }
+    if (isset($_POST['send-shabat-reminde'])){
+        //send to all
+    }
+    else{
+        $title = "ניהול תזכורות לשבת";
+        printHeadTitle($title);
 
+        echo '<title>'.$title.'</title>
+        <hr>
+        <h3>עדכון הערה בתזכורת לשבת</h3>
+        <form method="POST">
+            <input name="shabat-comment" style="width: 550px;">
+            <br><br><hr>
+            <h3>עדכון תאריכי תזכורות לשבת</h3>
+            <br><br>
+            <table class="table" dir="rtl">
+            <tbody>';
+        $row=7;
+        $saturdays=iterator_to_array(getSaturdays(date("Y"), 1),true);
+        for ($i=0; $i<$row; ++$i) {
+            echo'<tr>
+            <th scope="row">'.$i.'</th>';
+            for ($j=0; $j < sizeof($saturdays)/$row-1; ++$j) { 
+                echo 
+                '<td>'.$saturdays[$j*$row+$i]->format("Y-m-d\n").'
+                <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
+            }
+            if ($i<sizeof($saturdays)-$row*$row){
+                    echo '<td>'.$saturdays[$row*$row+$i]->format("Y-m-d\n").'
+                    <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
+                }
+            echo'</tr>';
+        }
+        echo'</tbody></table>
+            <button name="update" type="submit">עדכן</button>
+        </form>
+        <hr>
+        <h3>שליחת תזכורת לשבת עכשיו<h3>
+        <form method="POST">
+        <button type="button" class="btn btn-primary" 
+        data-toggle="modal" data-target="#exampleModal">שלח עכשיו</button>';
+        printModal('send-shabat-reminde');
+    }
 }
+
 function admin__blockAndFreeUsers(){
     if (isset($_POST["phone"])){
         $phone=$_POST["phone"];
@@ -92,7 +157,7 @@ function admin__sendMessageToUser(){
         }
     }
     else{            
-        printBS();
+        printHead();
         echo '
         <div align=center dir="rtl">
         <form method="POST">
@@ -103,7 +168,7 @@ function admin__sendMessageToUser(){
             תוכן ההודעה: <br><textarea rows="12" cols="50" name="send-message-one-user"></textarea>
             <br><br>
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">שלח עכשיו</button>';
-            printModal();
+            printModal('message');
     }
 }
 function admin__updateContacts(){
@@ -144,7 +209,7 @@ function admin__sendMessageToAllUsers(){
         headerHome();
     }
     else{
-        printBS();
+        printHeadTitle('שליחת הודעת תפוצה');
         echo '<form method="POST"><br>
         <div align="center">
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
@@ -154,7 +219,128 @@ function admin__sendMessageToAllUsers(){
         </div>';
     }
 }
-function admin__sendSpecialRegister(){}
+function admin__sendSpecialRegister(){
+    global $speicalRegisterData;
+    global $DBConn;
+    global $messageId;
+    global $from;
+
+    if(isset($_POST['send-reminde-name'], $_POST['send-reminde-longCommand'], $_POST['send-reminde-shortCommand'], $_POST['send-reminde-comment']) && 
+        is_string($_POST['send-reminde-name']) && is_string($_POST['send-reminde-longCommand']) && is_string($_POST['send-reminde-shortCommand']) && is_string($_POST['send-reminde-comment']) &&
+        !empty($_POST['send-reminde-name']) && !empty($_POST['send-reminde-longCommand']) && !empty($_POST['send-reminde-shortCommand'])
+        ){
+            if(!checkComment($_POST['send-reminde-name']) ||
+            !checkComment($_POST['send-reminde-longCommand'])
+                || !checkComment($_POST['send-reminde-shortCommand'])
+                || !checkComment($_POST['send-reminde-comment'])
+                ){
+                    $_SESSION['YE_UPDATE_Mes']="השתמשת בתווים לא חוקיים";
+                    header('refresh: 0');
+            }
+            else{
+                $_SESSION['YE_UPDATE_Reminde'] = array(
+                    "name" => $_POST['send-reminde-name'],
+                    "longCommand" => $_POST['send-reminde-longCommand'],
+                    "longCommand2" => $_POST['send-reminde-longCommand-2'],
+                    "shortCommand" => $_POST['send-reminde-shortCommand'],
+                    "shortCommand2" => $_POST['send-reminde-shortCommand-2'],
+                    "comment" => $_POST['send-reminde-comment']
+                );
+                
+                $title = "שליחת תזכורת לרישום מיוחד [תצוגה מקדימה]";
+                $message = '<h2 style="color:red;">זכור! זוהי פעולה שאי אפשר לבטלה! חשוב שנית על הניסוח וחשיבות התזכורת</h2>';
+                //printHeadWithDiv($title, $message);
+                printHeadTitle($title);
+                echo '
+                <form method="POST">
+                    <pre dir="rtl" style="text-align: right; margin-right: 20%;">
+                        <b>🔔 תזכורת להירשם ל' . htmlspecialchars($_POST['send-reminde-name']) . '</b>
+                        
+                        באפשרותך להירשם באמצעות הפקודה "' . htmlspecialchars($_POST['send-reminde-longCommand']) . '" (' . htmlspecialchars($_POST['send-reminde-shortCommand']) . ') או באמצעות הלחצנים המופיעים בתחתית ההודעה.
+                        ' . htmlspecialchars($_POST['send-reminde-comment']) . '
+        
+                        <i>לאחר שנרשמת, תזכיר למי שנמצא מימינך ושמאלך להירשם...</i>
+                    </pre>
+                    <br><br>
+                    <button onclick="history.back();return false;">חזור אחורה</button>
+                    <input type="submit" name="only-save-special-reminde-data" onclick="this.value=1" value="שמירה של הפקודה ללא שליחה"/>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" onclick="this.value=1">שליחה</button>';
+                    printModal('send-reminde-done');
+                //printEndWithDiv();
+            }
+    }
+    elseif(isset($_POST['only-save-special-reminde-data']) && $_POST['only-save-special-reminde-data'] == 1){
+        $remindeData = $_SESSION['YE_UPDATE_Reminde'];
+        //file_put_contents(__DIR__ . "/data/specialReg.json", json_encode($remindeData, true));
+        unset($_SESSION['YE_UPDATE_Reminde']);
+        $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:darkturquoise;'>הפקודה נשמרה בהצלחה! שכוייעח עצום 😉</h2>";
+        headerHome();
+    }
+    elseif(isset($_POST['send-reminde-done']) && !empty($_SESSION['YE_UPDATE_Reminde'])){
+        $remindeData = $_SESSION['YE_UPDATE_Reminde'];
+        //file_put_contents(BOT_MIDRASH_INCLUDE_DIR . "/data/specialReg.json", json_encode($remindeData, true));
+        unset($_SESSION['YE_UPDATE_Reminde']);
+        
+        /*$selectUsers = $DBConn->prepare("SELECT `phone`,`last_name` FROM `YBM_ShabatReminder` WHERE `mode` = 1");
+        //$selectUsers->execute();
+        //$usersShabatArr = $selectUsers->get_result()->fetch_all(MYSQLI_ASSOC) ?? false;
+    
+        //$template = createTemplateArrForRemindeMessage($remindeData['name'], $remindeData['longCommand'], $remindeData['shortCommand'], $remindeData['comment'], true);
+        
+        //dontKillMe();
+        
+        //initSheets();
+
+        //$allUsersFromExcel = getAllStudents("SPECIAL");
+
+        foreach ($usersShabatArr as $user){
+            if(!empty($user['last_name']) && searchUserRegisterStatus($allUsersFromExcel, $user['last_name'])){
+                continue;
+            }
+            
+            $messageId = "schedule_cron_send_reminde_special__" . uniqid();
+            $from = $user['phone'];
+            sendMessage($user['phone'], "template", $template);
+        }*/
+
+        $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:darkturquoise;'>ההודעה נשלחה לכל משתמשי הבוט</h2>";
+        
+        headerHome();
+    }
+    else{
+        $title = "שליחת תזכורת לרישום מיוחד";
+        //printHeadWithDiv($title);
+        printHeadTitle($title);
+
+        echo '
+        <form method="POST">
+            שם התזכורת: <input name="send-reminde-name" onkeyup="updateLongCommand();updateShortCommand();" value="" required/><br><br>
+            פקודת רישום ארוכה: <input name="send-reminde-longCommand" onkeyup="updateShortCommand();" value="" required/><br><br>
+            פקודת רישום קצרה: <input name="send-reminde-shortCommand" value="" required/><br><br>
+            פקודת רישום ארוכה נוספת: <input name="send-reminde-longCommand-2" value=""/><br><br>
+            פקודת רישום קצרה נוספת: <input name="send-reminde-shortCommand-2" value=""/><br><br>
+            הערה (לא חובה): <br><textarea cols="150" rows="2" name="send-reminde-comment"></textarea>
+            <br><br>
+            <button type="submit">עבור לתצוגה מקדימה</button>
+        </form>
+        <script>
+            function updateLongCommand(){
+                document.getElementsByName(\'send-reminde-longCommand\')[0].value = 
+                    \'רישום ל\' + document.getElementsByName(\'send-reminde-name\')[0].value;
+            }
+            function updateShortCommand(){
+                var command = document.getElementsByName(\'send-reminde-longCommand\')[0].value.split(\' \');
+                document.getElementsByName(\'send-reminde-shortCommand\')[0].value = 
+                    command[0].charAt(0) + (command[1] ? command[1].charAt(0) : \'\') + 
+                    (command[2] ? command[2].charAt(0) : \'\') + 
+                    (command[3] ? command[3].charAt(0) : \'\') +
+                    (command[4] ? command[4].charAt(0) : \'\')
+                ;
+            }
+        </script>';
+        //printEndWithDiv();
+    }
+}
 function admin__printLastChatsHtml(){}
 function admin__printLogMessagesUserHtml(){}
 function admin__printJson(){}
@@ -164,12 +350,11 @@ function admin__uploadPhotos(){
     if(isset($_POST['upload'])){
         echo '<br><br>';
         print_r($_FILES);
-        $i=0;
-        foreach ($_FILES['img']['name'] as $img) {
+        echo'<br><br>';
+        print_r($_POST);
+        
+        for ($i=0;$i<sizeof($_FILES['img']['name']);++$i) {
             echo '<br>'.sizeof($_FILES['img']['name']);
-            if ($i==sizeof($_FILES['img']['name'])){
-                break;
-            }
             echo '<br>'.$_FILES['img']['name'][$i].'<br>';
             if ($_FILES['img']['name'][$i]==''){
                 continue;
@@ -177,13 +362,13 @@ function admin__uploadPhotos(){
             echo'<br><br>'.$i;
             print_r($_FILES["img"]["tmp_name"][$i]);
             saveP($_FILES,$i/*["img"]["tmp_name"][$i], $target.$i.'.jpg'*/);
-            ++$i;
         }
         headerHome();
     }
     
     else{
-        printBS();
+        $_SESSION['YE_UPDATE_Array']=array();
+        printHead();
         echo '<form method="POST" enctype="multipart/form-data"><br>
         <button class="btn btn-success" name="upload">עדכן</button>
         <br>
@@ -201,7 +386,7 @@ function admin__uploadPhotos(){
         $i=0;
         $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
         foreach ($users as $key=>$value) {
-            $user=array($key=>$value);
+            array_push($_SESSION['YE_UPDATE_Array'],$key);
             echo'
                 <tr>
                 <th scope="row">'.$i.'</th>
@@ -216,18 +401,9 @@ function admin__uploadPhotos(){
             $i++;
         }
         echo '</tbody></table></form>';
-        
-    //     <label for="img">בחר קובץ</label>
-    //     <input type="file" id="img" name="img" accept="image/*">
-    //     <button type="submit">עדכן</button>
-    //   </form>
-    //   </div>;
-    //   </html>';
     }
 }
-function admin__printImagesTable(){
-
-}
+function admin__printImagesTable(){}
 function admin__deletePhoto(){}
 function admin__manageUsers(){
     if (isset($_POST["phone"])){
@@ -394,7 +570,7 @@ function admin__settings(){
         headerHome();
     }
     else {
-    printBS();
+    printHead();
     echo '
         <form method="POST" enctype="multipart/form-data">
             <div align="center"><br>
@@ -402,6 +578,7 @@ function admin__settings(){
                 <input type="url" name="shabat" placeholder="קישור לרישום שבתות">
                 <input type="url" name="calls" placeholder="קישור לקובץ אנשי קשר">
                 <input type="url" name="guards" placeholder="קישור לרישום שמירות"><br><br>
+                <textarea name="general" placeholder="הודעת אודות כאשר לא נמצאה פקודה מתאימה"></textarea><br><br>
                 תמונת הישיבה
                 <input type="file" name="logo" accept="image/*"><br><br>';
     //$commands=getCommands(yeshivaID);
@@ -475,14 +652,14 @@ function saveP($files,$index){
     
     else {
         if (move_uploaded_file($_FILES["img"]["tmp_name"][$index], $target_file)) {
-        $_SESSION['YE_UPDATE_Mes'].="<br>The file of ". $index. " has been uploaded.";
+        $_SESSION['YE_UPDATE_Mes'].="<br>התמונה של ". $_SESSION['YE_UPDATE_Array'][$index]. " הועלתה בהצלחה.";
         } else {
         $_SESSION['YE_UPDATE_Mes'].= "<br>Sorry, there was an error uploading your file.";
         }
       }
 }
 
-function printModal(){
+function printModal($name){
     echo '<!-- Modal -->
             <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
                 aria-hidden="true">
@@ -500,12 +677,20 @@ function printModal(){
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">חזור</button>
                             <p>&nbsp</p>
-                            <button type="submit" name="message" class="btn btn-primary">אישור ושליחה</button>
+                            <button type="submit" name="'.$name.'" class="btn btn-primary">אישור ושליחה</button>
                         </div>
                     </div>
                 </div>
             </div>
         </form>';
+}
+
+function getSaturdays($y, $m){
+    return new DatePeriod(
+        new DateTime("first saturday of $y-1"),
+        DateInterval::createFromDateString('next saturday'),
+        new DateTime("last day of $y-12 23:59:59")
+    );
 }
 
 ?>
