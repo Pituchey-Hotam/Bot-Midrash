@@ -58,20 +58,32 @@ function admin__shabatMenu(){
             <br><br><hr>
             <h3>עדכון תאריכי תזכורות לשבת</h3>
             <br><br>
-            <table class="table" dir="rtl">
+            <table class="table" dir="rtl" >
             <tbody>';
         $row=7;
-        $saturdays=iterator_to_array(getSaturdays(date("Y"), 1),true);
+        $saturdays=iterator_to_array(getSaturdays(date("Y"),date("Y")+1,8, 7),true);
         for ($i=0; $i<$row; ++$i) {
             echo'<tr>
             <th scope="row">'.$i.'</th>';
-            for ($j=0; $j < sizeof($saturdays)/$row-1; ++$j) { 
+            for ($j=0; $j < sizeof($saturdays)/$row-1; ++$j) {
+                $d=intval($saturdays[$j*$row+$i]->format("d\n"));
+                $m=intval($saturdays[$j*$row+$i]->format("m\n"));
+                $y=intval($saturdays[$j*$row+$i]->format("Y\n"));
+                $jd = gregoriantojd($m, $d, $y);
+                $h=jdtojewish($jd, true, CAL_JEWISH_ADD_GERESHAYIM);
+                $h=iconv('ISO-8859-8', 'UTF-8', $h);
                 echo 
-                '<td>'.$saturdays[$j*$row+$i]->format("d-m-Y\n").'
+                '<td>'.$saturdays[$j*$row+$i]->format("d/m/Y\n").' '.$h.'
                 <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
             }
             if ($i<sizeof($saturdays)-$row*$row){
-                    echo '<td>'.$saturdays[$row*$row+$i]->format("d-m-Y\n").'
+                $d=intval($saturdays[$row*$row+$i]->format("d\n"));
+                $m=intval($saturdays[$row*$row+$i]->format("m\n"));
+                $y=intval($saturdays[$row*$row+$i]->format("Y\n"));
+                $jd = gregoriantojd($m, $d, $y);
+                $h=jdtojewish($jd, true, CAL_JEWISH_ADD_GERESHAYIM);
+                $h=iconv('ISO-8859-8', 'UTF-8', $h);
+                    echo '<td>'.$saturdays[$row*$row+$i]->format("d/m/Y\n").' '.$h.'
                     <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
                 }
             echo'</tr>';
@@ -688,11 +700,11 @@ function printModal($name){
         </form>';
 }
 
-function getSaturdays($y, $m){
+function getSaturdays($y1,$y2, $m1,$m2){
     return new DatePeriod(
-        new DateTime("first saturday of $y-1"),
+        new DateTime("first saturday of $y1-$m1"),
         DateInterval::createFromDateString('next saturday'),
-        new DateTime("last day of $y-12 23:59:59")
+        new DateTime("last day of $y2-$m2 23:59:59")
     );
 }
 
