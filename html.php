@@ -26,10 +26,14 @@ function checkComment($comment){
 }
 
 function admin__shabatMenu(){
-    print_r($_POST);
     if (isset($_POST['update'])){
         if (isset($_POST['shabat-comment'])&&checkComment($_POST['shabat-comment'])){
             //set to DB
+        }
+        elseif (isset($_POST['shabat-comment'])&&!checkComment($_POST['shabat-comment'])){
+            $_SESSION['YE_UPDATE_Mes']="השתמשת בתווים לא חוקיים";
+            header('refresh: 0');
+            return;
         }
         for ($i=0,$saturdays=iterator_to_array(getSaturdays(date("Y"), 1),true);
             $i < sizeof($saturdays); ++$i) {
@@ -40,15 +44,14 @@ function admin__shabatMenu(){
         $_SESSION['YE_UPDATE_Mes']="העדכון בוצע בהצלחה";
         headerHome();
     }
-    if (isset($_POST['send-shabat-reminde'])){
+    else if (isset($_POST['send-shabat-reminde'])){
         //send to all
     }
     else{
         $title = "ניהול תזכורות לשבת";
         printHeadTitle($title);
 
-        echo '<title>'.$title.'</title>
-        <hr>
+        echo '<hr>
         <h3>עדכון הערה בתזכורת לשבת</h3>
         <form method="POST">
             <input name="shabat-comment" style="width: 550px;">
@@ -64,11 +67,11 @@ function admin__shabatMenu(){
             <th scope="row">'.$i.'</th>';
             for ($j=0; $j < sizeof($saturdays)/$row-1; ++$j) { 
                 echo 
-                '<td>'.$saturdays[$j*$row+$i]->format("Y-m-d\n").'
+                '<td>'.$saturdays[$j*$row+$i]->format("d-m-Y\n").'
                 <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
             }
             if ($i<sizeof($saturdays)-$row*$row){
-                    echo '<td>'.$saturdays[$row*$row+$i]->format("Y-m-d\n").'
+                    echo '<td>'.$saturdays[$row*$row+$i]->format("d-m-Y\n").'
                     <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
                 }
             echo'</tr>';
