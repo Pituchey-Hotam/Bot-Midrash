@@ -1,5 +1,4 @@
 <?php
-define('MASTER_USER','master');
 define('MAX_SIZE',5000000);
 function printHead(){
     echo'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
@@ -16,9 +15,11 @@ function printHeadTitle($title){
     printHead();
     echo'<title>'.$title.'</title>
     <div align="center"><br>
-    <h1>'.$title.'</h1><br>
-    <h4>'.$_SESSION['YE_UPDATE_Mes'].'</h4>';
-    $_SESSION['YE_UPDATE_Mes']='';
+    <h1>'.$title.'</h1><br>';
+    if (isset($_SESSION['YE_UPDATE_Mes'])){
+        echo '<h4>'.$_SESSION['YE_UPDATE_Mes'].'</h4>';
+        $_SESSION['YE_UPDATE_Mes']='';
+    }
 }
 
 function checkComment($comment){
@@ -126,33 +127,26 @@ function admin__blockAndFreeUsers(){
     }
     
     else{
-    echo '<div align="center" dir="rtl">
-        <!--a onclick="addButton()"><button>הוסף משתמש</button></a-->
-        <br><br>
-        <form method="POST">
-            <div id="input-container" dir="rtl"></div>
-            <input name="phone" type="number" placeholder="מספר טלפון">
+        printHeadTitle('חסימת/שחרור משתמש');
+        echo '<div align="center" dir="rtl">
+            <!--a onclick="addButton()"><button>הוסף משתמש</button></a-->
             <br><br>
-            <button type="submit">עדכן</button>
-        </form>
-        </div>
-        
-        <script>
-        //const inputContainer = document.getElementById("input-container");
+            <form method="POST">
+                <div id="input-container" dir="rtl"></div>
+                <input name="phone" type="number" placeholder="מספר טלפון">
+                <br><br>
+                <button type="submit">עדכן</button>
+            </form>
+            </div>
             
-        //     // function addButton() { 
-        //     //     var myParent = inputContainer;
-        //     //     myParent.innerHTML+=`<input type="number" placeholder="מספר טלפון">
-        //     //     <br><br>`;
-        //     // }
-        </script>'
-        ;}
+            <script>';
+    }
 }
 function admin__sendMessageToUser(){
     global $from;
     global $messageId;
-    
-    if(isset($_POST['send-message-one-user'], $_POST['phone']) && !empty($_POST['send-message-one-user'])){
+    print_r($_POST);
+    if(isset($_POST['send-message-one-user'], $_POST['phone'])){
         $adminPanelMesColor = "darkturquoise";
 
             $from = $_POST['phone'];
@@ -160,19 +154,12 @@ function admin__sendMessageToUser(){
             //sendMessage($_POST['phone'], "text", $_POST['send-message-one-user']);
             $adminPanelMes = "במידה והמשתמש פעיל בבוט, ההודעה נשלחה בהצלחה";
         
-        if(isset($_GET['close-after-send'])){
-            echo "<script>alert('" . $adminPanelMes . "');window.close();</script>";
-        }
-        elseif(isset($_GET['return-to-messages-log'])){
-            header("Location: ?act=user-messages-log&phone=" . $from);
-        }
-        else{
+
             $_SESSION['YE_UPDATE_Mes'] = "<h2 style='color:" . $adminPanelMesColor . ";'>" . $adminPanelMes . "</h2>";
             headerHome();
-        }
     }
     else{            
-        printHead();
+        printHeadTitle('שליחת הודעה למשתמש');
         echo '
         <div align=center dir="rtl">
         <form method="POST">
@@ -180,7 +167,7 @@ function admin__sendMessageToUser(){
             מספר טלפון: 
             <input name="phone" type="number" dir="ltr" required/>
             <br><br>
-            תוכן ההודעה: <br><textarea rows="12" cols="50" name="send-message-one-user"></textarea>
+            תוכן ההודעה: <br><textarea rows="12" cols="50" name="send-message-one-user" required></textarea>
             <br><br>
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">שלח עכשיו</button>';
             printModal('message');
@@ -421,54 +408,100 @@ function admin__uploadPhotos(){
 function admin__printImagesTable(){}
 function admin__deletePhoto(){}
 function admin__manageUsers(){
-    if (isset($_POST["phone"])){
-        $phone1=$_POST["phone"];
-        //$name=select name from users where phone=$phone
-        $name='###';
-        $phone=array($phone1=>$name);
-        //select yashivaID from user where phone=&phone
-        //$t=select * from users where yeshivaID=yeshivaID
-        $t=[$phone];
-        $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
-        if (!empty($t)){
-            if (isset($users[$phone1])){
-                $_SESSION["YE_UPDATE_Mes"]="המשתמש הינו מנהל, לא ניתן להסיר מנהלים בעלי הרשאות";
-                $perm=json_decode(file_get_contents(__DIR__ . "/data/permissions.json"), true);
-                $flag=false;
-                foreach ($perm as $i){
-                    if (in_array($phone1,$i)){
-                        $flag=true;
-                        break;
+    print_r($_POST);
+    if (isset($_POST["update"])){
+        foreach ($_POST as $key=>$phone) {
+            $_SESSION["YE_UPDATE_Mes"].='<br>';
+            if ($phone==='') continue;
+            //$name=select name from users where phone=$phone
+            $name='###';
+            $phone1=array($phone=>$name);
+            //select yashivaID from user where phone=$phone
+            //$t=select * from users where yeshivaID=yeshivaID
+            $t=[$phone1];
+            $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
+            if (!empty($t)){
+                if (isset($users[$phone])){
+                    $perm=json_decode(file_get_contents(__DIR__ . "/data/permissions.json"), true);
+                    $flag=false;
+                    foreach ($perm as $i){
+                        if (in_array($phone,$i)){
+                            $flag=true;
+                            $_SESSION["YE_UPDATE_Mes"].="המשתמש ".$name." (".$phone.") הינו מנהל, לא ניתן להסיר מנהלים בעלי הרשאות";
+                            break;
+                        }
                     }
+                    if (!$flag){
+                        unset($users[$phone]);
+                        $_SESSION["YE_UPDATE_Mes"].='המשתמש '.$name.' ('.$phone.') הוסר מניהול';
+                    }
+                    file_put_contents(__DIR__ . "/data/users.json", json_encode($users));
                 }
-                if (!$flag){
-                    unset($users[$phone1]);
-                    $_SESSION["YE_UPDATE_Mes"]='המשתמש הוסר מניהול';
+                else{
+                    $users=$users+$phone1;
+                    file_put_contents(__DIR__ . "/data/users.json", json_encode($users));
+                    $_SESSION["YE_UPDATE_Mes"].="המשתמש ".$name." (".$phone.") הוגדר כמנהל בהצלחה";
                 }
-                file_put_contents(__DIR__ . "/data/users.json", json_encode($users));
             }
-            else{
-            $users=$users+$phone;
-            file_put_contents(__DIR__ . "/data/users.json", json_encode($users));
-            $_SESSION["YE_UPDATE_Mes"]=(string)($users).'\n\n'.$phone[$phone1]."המשתמש הוגדר כמנהל בהצלחה";
-        }
-        }
-        else {
-            $_SESSION["YE_UPDATE_Mes"]="המשתמש אינו קיים";
+            else {
+                $_SESSION["YE_UPDATE_Mes"].="המשתמש ".$name." (".$phone.") אינו קיים";
+            }
         }
         headerHome();
     }
 
     else{
-        echo '<div align="center" dir="rtl">
-            <br><br>
-            <form method="POST">
-                <div id="input-container" dir="rtl"></div>
-                <input name="phone" type="number" placeholder="מספר טלפון">
+        printHeadTitle('הוספת/הסרת מנהל');
+        $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
+        echo '<form method="POST">
+            <button name="update" type="submit">עדכן</button>
+            <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">הסר?</th>
+                    <th scope="col">מספר טלפון</th>
+                    <th scope="col">שם</th>
+                </tr>
+            </thead>
+            <tbody>
+            ';
+            $i=0;
+            foreach ($users as $phone => $name) {
+                echo '<tr><th scoope="row">'.$i.'</th>
+                <td><select name="phone' . $i.'">
+                    <option class="no" value="">לא</option>
+                    <option class="yes" value="'.$phone.'">כן</option>
+                </select></td>
+                <td>'.$phone.'</td><td> ('.$name.') </td>
+                </tr>';
+                ++$i;
+            }
+            echo '</tbody></table>
+                <div id="lineContainer" dir="rtl"></div>
+                <button onclick="addLine()" type="button">הוסף מנהל</button>
+                <!--input name="phone" type="number" placeholder="מספר טלפון"-->
                 <br><br>
-                <button type="submit">עדכן</button>
-            </form>
-            </div>';
+
+            <script>
+                const lineContainer = document.getElementById("lineContainer");
+                var i = '.$i.';
+                function addLine() {
+                    lineContainer.innerHTML += ` <div id="`+i+`">
+                    <button type="button" onclick="delLine(`+i+`)">הסר</button>
+
+                    <input name="phone`+i+`" placeholder="מספר טלפון">
+                    <br><br>
+                    </div>
+                    `;
+                    ++i;
+                }
+                function delLine(index){
+                    const element=document.getElementById(index.toString());
+                    element.remove();
+                }
+            </script>
+            </form>';
     }
 }
 function admin__manageUsersPermissions(){
@@ -502,6 +535,8 @@ function admin__manageUsersPermissions(){
     }
     else{
         $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
+        $ad = json_decode(file_get_contents(__DIR__ . "/data/adapter.json"), true);
+        printHeadTitle('ניהול הרשאות');
         echo '
         <div align="center" dir="rtl">
             ניהול הרשאות משתמשים
@@ -521,18 +556,15 @@ function admin__manageUsersPermissions(){
         
             echo "\n\t\t\t\t\t" . '<tr>';
             echo '<th>שם הרשאה</th>';
-            foreach ($users as $user => $notInUse){
-                if ($users[$user] == MASTER_USER) continue;
-                
+            foreach ($users as $user => $notInUse){                
                 echo '<th>' . htmlspecialchars($users[$user]) . '</th>';
             }
             echo '</tr>';
             
             foreach ($options as $optionName => $allowUsers){
                 echo "\n\t\t\t\t\t" . '<tr>';
-                echo '<td>' . htmlspecialchars($optionName) . '</td>';
+                echo '<td>' . htmlspecialchars($ad[$optionName]) . '</td>';
                 foreach ($users as $user => $notInUse_2){
-                    if ($users[$user] == MASTER_USER) continue;
                     
                     echo '<td>';
                     echo '<select onchange="changeClass(this)" class="' . (in_array($user, $allowUsers) ? "yes" : "no") . '" name="permissions[' . htmlspecialchars($user) . '][' . htmlspecialchars($optionName) . ']">';

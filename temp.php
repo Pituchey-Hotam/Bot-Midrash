@@ -102,8 +102,12 @@ $loggedUser=$_SESSION['YE_UPDATE_User']['Logged'][1];
 
 else if (isset($_POST['code'])&& $_POST['code']===$_SESSION['YE_UPDATE_User']['Code']){
   $_SESSION['YE_UPDATE_User']['Status']='In';
-  header('refresh: 0');
-
+  $_SESSION['YE_UPDATE_Mes']='<h1 align="center" style="color: green;">ברוך הבא '.$_SESSION['YE_UPDATE_User']['Logged'][0].'!</h1>';
+  headerHome();
+}
+else if (isset($_POST['code'])&& $_POST['code']!==$_SESSION['YE_UPDATE_User']['Code']){
+  $_SESSION['YE_UPDATE_Mes']='הקוד שהזנת אינו תקין';
+  headerHome();
 }
 
 else if (array_key_exists('phone', $_POST)) {
@@ -119,6 +123,7 @@ else if (array_key_exists('phone', $_POST)) {
       printAuth();
     }
     else{
+      $_SESSION['YE_UPDATE_Mes']='המספר אינו שמור במערכת';
       headerHome();
     }
 }
@@ -128,7 +133,12 @@ else {
     echo $_SESSION['YE_UPDATE_User']['Status'];
   }
   //unset($_SESSION['YE_UPDATE_User']['Logged']);
+  if (isset($_SESSION['YE_UPDATE_User']['Status']) && $_SESSION['YE_UPDATE_User']['Status']==='auth'){
+    printAuth();
+  }
+  else{
     printLogin();
+  }
 }
 
 function printHome(){
@@ -142,7 +152,7 @@ function printHome(){
 }
 
 function printLogin(){
-  printBS();
+  printHeadTitle('כניסה');
   echo '<form method="POST">
           <input type="text" name="phone" placeholder="מספר טלפון" autofocus="autofocus"><br><br>
           <button type="submit">כניסה</button>
@@ -157,7 +167,7 @@ function checkPhone($phone){
 }
 
 function printAuth(){
-  printBS();
+  printHeadTitle('אימות');
   //print username
   echo $_SESSION['YE_UPDATE_User']['Logged'][0];
   // else{
