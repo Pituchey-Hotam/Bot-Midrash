@@ -62,11 +62,36 @@ function admin__shabatMenu(){
             <table class="table" dir="rtl" >
             <tbody>';
         $row=7;
-        $saturdays=iterator_to_array(getSaturdays(date("Y"),date("Y")+1,8, 7),true);
+        $tm=date('m');
+        $td=date('d');
+        $ty=date('Y');
+        $f1=gregoriantojd($tm,$td,$ty);
+        $f2=jewishtojd(12,9,$ty+3760);
+        if($f1>$f2){
+            $y=$ty;
+        }
+        else{
+            $y=$ty-1;
+        }
+        $f3=jewishtojd(13,1,$y+3760);
+        $startYear=jdtogregorian($f3);
+        $f5=jewishtojd(12,9,$y+1+3760);
+        $endYear=jdtogregorian($f5);
+        $saturdays=iterator_to_array(getSaturdays($y, $y+1, intval(explode('/',$startYear)[0]), intval(explode('/',$endYear)[0])),true);
+        $k=0;
+        foreach ($saturdays as $sat) {
+            $tmp=gregoriantojd($sat->format("m\n"),$sat->format("d\n"),$sat->format("Y\n"));
+            if ($tmp<$f3||$tmp>$f5){
+                array_splice($saturdays,$k,1);
+                --$k;
+            }
+            ++$k;
+        }
+        $col=intval(sizeof($saturdays)/$row);
         for ($i=0; $i<$row; ++$i) {
             echo'<tr>
             <th scope="row">'.$i.'</th>';
-            for ($j=0; $j < sizeof($saturdays)/$row-1; ++$j) {
+            for ($j=0; $j < $col; ++$j) {
                 $d=intval($saturdays[$j*$row+$i]->format("d\n"));
                 $m=intval($saturdays[$j*$row+$i]->format("m\n"));
                 $y=intval($saturdays[$j*$row+$i]->format("Y\n"));
@@ -77,26 +102,26 @@ function admin__shabatMenu(){
                 '<td>'.$saturdays[$j*$row+$i]->format("d/m/Y\n").' '.$h.'
                 <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
             }
-            if ($i<sizeof($saturdays)-$row*$row){
-                $d=intval($saturdays[$row*$row+$i]->format("d\n"));
-                $m=intval($saturdays[$row*$row+$i]->format("m\n"));
-                $y=intval($saturdays[$row*$row+$i]->format("Y\n"));
+            if ($i<sizeof($saturdays)-$row*$col){
+                $d=intval($saturdays[$row*$col+$i]->format("d\n"));
+                $m=intval($saturdays[$row*$col+$i]->format("m\n"));
+                $y=intval($saturdays[$row*$col+$i]->format("Y\n"));
                 $jd = gregoriantojd($m, $d, $y);
                 $h=jdtojewish($jd, true, CAL_JEWISH_ADD_GERESHAYIM);
                 $h=iconv('ISO-8859-8', 'UTF-8', $h);
-                    echo '<td>'.$saturdays[$row*$row+$i]->format("d/m/Y\n").' '.$h.'
+                    echo '<td>'.$saturdays[$row*$col+$i]->format("d/m/Y\n").' '.$h.'
                     <input name="cb'.$j*$row+$i.'" type="checkbox"></td>';
                 }
             echo'</tr>';
         }
         echo'</tbody></table>
             <button name="update" type="submit">עדכן</button>
-        </form>
-        <hr>
-        <h3>שליחת תזכורת לשבת עכשיו<h3>
-        <form method="POST">
-        <button type="button" class="btn btn-primary" 
-        data-toggle="modal" data-target="#exampleModal">שלח עכשיו</button>';
+            </form>
+            <hr>
+            <h3>שליחת תזכורת לשבת עכשיו<h3>
+            <form method="POST">
+            <button type="button" class="btn btn-primary" 
+            data-toggle="modal" data-target="#exampleModal">שלח עכשיו</button>';
         printModal('send-shabat-reminde');
     }
 }
@@ -265,8 +290,8 @@ function admin__sendSpecialRegister(){
                     </pre>
                     <br><br>
                     <button onclick="history.back();return false;">חזור אחורה</button>
-                    <input type="submit" name="only-save-special-reminde-data" onclick="this.value=1" value="שמירה של הפקודה ללא שליחה"/>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" onclick="this.value=1">שליחה</button>';
+                    <input type="submit" name="only-save-special-reminde-data" onclick="this.sat$sat=1" sat$sat="שמירה של הפקודה ללא שליחה"/>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" onclick="this.sat$sat=1">שליחה</button>';
                     printModal('send-reminde-done');
                 //printEndWithDiv();
             }
@@ -316,23 +341,23 @@ function admin__sendSpecialRegister(){
 
         echo '
         <form method="POST">
-            שם התזכורת: <input name="send-reminde-name" onkeyup="updateLongCommand();updateShortCommand();" value="" required/><br><br>
-            פקודת רישום ארוכה: <input name="send-reminde-longCommand" onkeyup="updateShortCommand();" value="" required/><br><br>
-            פקודת רישום קצרה: <input name="send-reminde-shortCommand" value="" required/><br><br>
-            פקודת רישום ארוכה נוספת: <input name="send-reminde-longCommand-2" value=""/><br><br>
-            פקודת רישום קצרה נוספת: <input name="send-reminde-shortCommand-2" value=""/><br><br>
+            שם התזכורת: <input name="send-reminde-name" onkeyup="updateLongCommand();updateShortCommand();" sat$sat="" required/><br><br>
+            פקודת רישום ארוכה: <input name="send-reminde-longCommand" onkeyup="updateShortCommand();" sat$sat="" required/><br><br>
+            פקודת רישום קצרה: <input name="send-reminde-shortCommand" sat$sat="" required/><br><br>
+            פקודת רישום ארוכה נוספת: <input name="send-reminde-longCommand-2" sat$sat=""/><br><br>
+            פקודת רישום קצרה נוספת: <input name="send-reminde-shortCommand-2" sat$sat=""/><br><br>
             הערה (לא חובה): <br><textarea cols="150" rows="2" name="send-reminde-comment"></textarea>
             <br><br>
             <button type="submit">עבור לתצוגה מקדימה</button>
         </form>
         <script>
             function updateLongCommand(){
-                document.getElementsByName(\'send-reminde-longCommand\')[0].value = 
-                    \'רישום ל\' + document.getElementsByName(\'send-reminde-name\')[0].value;
+                document.getElementsByName(\'send-reminde-longCommand\')[0].sat$sat = 
+                    \'רישום ל\' + document.getElementsByName(\'send-reminde-name\')[0].sat$sat;
             }
             function updateShortCommand(){
-                var command = document.getElementsByName(\'send-reminde-longCommand\')[0].value.split(\' \');
-                document.getElementsByName(\'send-reminde-shortCommand\')[0].value = 
+                var command = document.getElementsByName(\'send-reminde-longCommand\')[0].sat$sat.split(\' \');
+                document.getElementsByName(\'send-reminde-shortCommand\')[0].sat$sat = 
                     command[0].charAt(0) + (command[1] ? command[1].charAt(0) : \'\') + 
                     (command[2] ? command[2].charAt(0) : \'\') + 
                     (command[3] ? command[3].charAt(0) : \'\') +
@@ -387,12 +412,12 @@ function admin__uploadPhotos(){
         <tbody>';
         $i=0;
         $users = json_decode(file_get_contents(__DIR__ . "/data/users.json"), true);
-        foreach ($users as $key=>$value) {
+        foreach ($users as $key=>$sat) {
             array_push($_SESSION['YE_UPDATE_Array'],$key);
             echo'
                 <tr>
                 <th scope="row">'.$i.'</th>
-                <td>'.$value.'</td>
+                <td>'.$sat.'</td>
                 <td>'.$key.'</td>
                 <td>
                     <label for="img">בחר קובץ</label>
@@ -470,8 +495,8 @@ function admin__manageUsers(){
             foreach ($users as $phone => $name) {
                 echo '<tr><th scoope="row">'.$i.'</th>
                 <td><select name="phone' . $i.'">
-                    <option class="no" value="">לא</option>
-                    <option class="yes" value="'.$phone.'">כן</option>
+                    <option class="no" sat$sat="">לא</option>
+                    <option class="yes" sat$sat="'.$phone.'">כן</option>
                 </select></td>
                 <td>'.$phone.'</td><td> ('.$name.') </td>
                 </tr>';
@@ -543,7 +568,7 @@ function admin__manageUsersPermissions(){
             <style>.yes{color:black;background-color:limegreen;font-weight:bold;} .no{color:black;background-color:lightcoral;}</style>
             <script>
                 function changeClass(select){
-                    if(select.value == "1"){
+                    if(select.sat$sat == "1"){
                         select.setAttribute("class", "yes");
                     }
                     else{
@@ -568,7 +593,7 @@ function admin__manageUsersPermissions(){
                     
                     echo '<td>';
                     echo '<select onchange="changeClass(this)" class="' . (in_array($user, $allowUsers) ? "yes" : "no") . '" name="permissions[' . htmlspecialchars($user) . '][' . htmlspecialchars($optionName) . ']">';
-                    echo '<option class="yes" value="1" ' . (in_array($user, $allowUsers) ? "selected" : "") . '>כן</option><option class="no" value="0" ' . (in_array($user, $allowUsers) ? "" : "selected") . '>לא</option>';
+                    echo '<option class="yes" sat$sat="1" ' . (in_array($user, $allowUsers) ? "selected" : "") . '>כן</option><option class="no" sat$sat="0" ' . (in_array($user, $allowUsers) ? "" : "selected") . '>לא</option>';
                     echo '</select>';
                     echo '</td>';
                 }
@@ -632,12 +657,12 @@ function admin__settings(){
     $commands=array("zr"=>["mjgd","bfggbghyjtnhfbdv"]);
     $i=0;
     $commandsInput='';
-    foreach ($commands as $key => $value) {
+    foreach ($commands as $key => $sat) {
         $commandsInput.='<div id="'.$i.'">
         <button type="button" onclick="delLine('.$i.')">הסר</button>
-        <input name="code'.$i.'" value="'.htmlspecialchars($key).'">
-        <input name="desc'.$i.'" value="'.htmlspecialchars($value[0]).'">
-        <input name="text'.$i.'" value="'.htmlspecialchars($value[1]).'" width="50" height="300">
+        <input name="code'.$i.'" sat$sat="'.htmlspecialchars($key).'">
+        <input name="desc'.$i.'" sat$sat="'.htmlspecialchars($sat[0]).'">
+        <input name="text'.$i.'" sat$sat="'.htmlspecialchars($sat[1]).'" width="50" height="300">
         <br><br>
         </div>';
         ++$i;
@@ -733,6 +758,7 @@ function printModal($name){
 }
 
 function getSaturdays($y1,$y2, $m1,$m2){
+
     return new DatePeriod(
         new DateTime("first saturday of $y1-$m1"),
         DateInterval::createFromDateString('next saturday'),
