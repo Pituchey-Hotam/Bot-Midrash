@@ -12,4 +12,24 @@ define('BOT_MIDRASH_DIR', dirname(__DIR__));
 define('BOT_MIDRASH_INCLUDE_DIR', BOT_MIDRASH_DIR . DIRECTORY_SEPARATOR . "include");
 define('BOT_MIDRASH_IMAGES_DIR', BOT_MIDRASH_DIR . DIRECTORY_SEPARATOR . "images");
 
-define('DATABASE_CONFIG', array("host" => "localhost", "username" => "root", "password" => "", "dbname" => "BotMidrashDB"));
+define('DATABASE_CONFIG',
+    array(
+        "host" => "localhost",
+        "username" => "root",
+        "password" => "",
+        "dbname" => "BotMidrashDB"
+    )
+);
+
+define('SHABAT_REGISTRATION_OPTIONS',
+    array(
+        "כן" => 1,
+        "לא" => 0,
+        "אולי" => 0.5,
+        "2" => 2,
+        "3" => 3,
+        "4" => 4
+    )
+);
+
+
