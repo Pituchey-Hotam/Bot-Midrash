@@ -36,11 +36,12 @@ class botMidrash{
 			$this->yeshivaDetails->yeshivaName = $yeshiva['name'];
 
 			$jsonSettings = array(
-				'blockedNumbers', 
-				'shabateAvalibleOptions', 
-				'shabateSheetsNames', 
-				'shabatRemindeDates', 
-				'speicalRegisterData'
+				'blockedNumbers',
+				'shabatAvalibleOptions',
+				'shabatSheetsNames',
+				'shabatRemindeDates',
+				'speicalRegisterData',
+				'textCommands'
 			);
 			$settings = (new db())->where('yeshiva_id', $this->yeshivaDetails->yeshivaId)->select('settings');
 
@@ -97,9 +98,22 @@ class botMidrash{
 				// facebookApi::markMessageRead($this->update->messageId);
 
 				$avalibleCommands = array(
-					'commandDayTimes',
-					'commandSearchLesson',
-					'commandSearchContact'
+					'commandDayTimes', // V
+					'commandSearchLesson', // V
+					'commandSearchContact', // V
+					'commandSearchContactByNumber', // V
+					'commandRegisterToReminde', // V
+					'commandDisbaleReminde', // V
+					'commandRegisterShabat',
+					'commandRegisterSpecial',
+					'commandSearchInAsif',
+					'commandSearchPhoto',
+					'commandHelp',
+					'commandContactToYeshivaAdmin',
+					'commandRequestUpdatePhoto',
+					'commandApprovaPhoto',
+					'commandDeletePhoto',
+					'commandStaticsOfShabatRegister'
 				);
 
 				$foundCommand = false;
@@ -108,6 +122,7 @@ class botMidrash{
 					$this->currentUser->waiting_command = "";
 				}
 
+				// Classes Commands
 				foreach ($avalibleCommands as $className) {
 					$command = (new $className());
 					if ($this->update->type == $command::command_message_type) {
@@ -125,6 +140,25 @@ class botMidrash{
 									$foundCommand = true;
 									break;
 								}
+						}
+					}
+				}
+
+				// Text Commands
+				if (!$foundCommand) {
+					$textCommands = (new db())->where('yeshiva_id', $this->yeshivaDetails->yeshivaId)->select('text_commands');
+					foreach($textCommands as $command) {
+						if (helpers::checkIfRunThisCommand(json_decode($command['command_names'], true), $command['command_type'], $this->update)) {
+							if ($command['need_auth'] && $this->yeshivaDetails->yeshivaId == -1) {
+								(new notAuthUser())->run($this->update, $this->yeshivaDetails, $this->currentUser);
+								$foundCommand = true;
+								break;
+							}
+							else {
+								facebookApi::sendText($this->update->from->phoneNumber, $command['text'], $this->update->messageId);
+								$foundCommand = true;
+								break;
+							}
 						}
 					}
 				}

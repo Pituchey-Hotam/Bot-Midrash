@@ -15,10 +15,12 @@ class user {
         "home_number",
         "email",
         "image_uuid",
-        "shatat_name",
-        "shabat_mode",
+        "shabat_registeration_mode",
+        "shabat_registeration_value",
+        "read_the_update",
         "last_use",
         "waiting_command",
+        "waiting_command_data",
         "yeshiva_id"
     );
 
